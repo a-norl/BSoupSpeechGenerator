@@ -1,11 +1,5 @@
 using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Gif;
-using System.Diagnostics;
-using SixLabors.ImageSharp.Processing.Processors.Quantization;
 using System.Globalization;
 
 namespace BSoupSpeechGenerator;

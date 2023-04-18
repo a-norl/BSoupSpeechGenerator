@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 
 namespace BSoupSpeechGenerator;
