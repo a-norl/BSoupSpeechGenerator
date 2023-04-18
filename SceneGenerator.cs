@@ -14,8 +14,6 @@ public class SceneGenerator
     private Dictionary<string, List<List<Image>>> speakers; //string name of character, List<List<Image>>> a list containing a list of all a characters outfits
     private SpeechBubbleGenerator speechBubbleGenerator;
 
-
-
     public SceneGenerator()
     {
         Console.WriteLine("Initializing Scene Generator");
@@ -52,148 +50,9 @@ public class SceneGenerator
         Console.WriteLine("Scene Generator Loaded");
     }
 
-    public MemoryStream Generate(List<(string, string)> script)
-    { //<(author, message)>
-        Console.WriteLine("beginning generation");
-        MemoryStream genStream = new MemoryStream();
 
-        Dictionary<string, (int, int)> authorCharacterDict = new(); //<author, (character, outfit)>
-        List<int> chosenCharacters = new();
-        foreach (var statementTuple in script)
-        {
-            if (authorCharacterDict.ContainsKey(statementTuple.Item1)) continue;
-
-            int charInt;
-            while (true)
-            {
-                charInt = random.Next(speakers.Count);
-                if (!chosenCharacters.Contains(charInt)) break;
-            }
-            int outfitInt = random.Next(speakers.Values.ToList()[charInt].Count);
-            authorCharacterDict.Add(statementTuple.Item1, (charInt, outfitInt));
-            chosenCharacters.Add(charInt);
-        }
-        int backgroundSelection = random.Next(backgrounds.Count);
-        Image background = backgrounds[backgroundSelection];
-
-        var gif = new Image<Rgba32>(background.Width, background.Height);
-        var metadata = gif.Metadata.GetGifMetadata();
-        metadata.RepeatCount = 0;
-
-        foreach (var statementTuple in script)
-        {
-            var spriteTuple = authorCharacterDict[statementTuple.Item1];
-            var partialGif = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
-            foreach (var frame in partialGif.Frames)
-            {
-                gif.Frames.AddFrame(frame);
-            }
-        }
-
-        Console.WriteLine("beginning encoding");
-        gif.Save(genStream, new GifEncoder()
-        {
-            Quantizer = new OctreeQuantizer(new QuantizerOptions()
-            {
-                Dither = null,
-            })
-        });
-        genStream.Position = 0;
-
-        string tempPath = $"temp_{random.Next(100000, 999999)}.gif";
-        var fs = new FileStream(tempPath, FileMode.OpenOrCreate);
-        genStream.CopyTo(fs);
-
-        var mediaInfo = FFProbe.Analyse(tempPath);
-
-
-        Console.WriteLine("beginning conversion");
-        MemoryStream outStream = new MemoryStream();
-        try
-        {
-            FFMpegArguments
-                .FromFileInput(tempPath)
-                .AddFileInput($"Resources{Path.DirectorySeparatorChar}Music{Path.DirectorySeparatorChar}flameOfLoveLoop.ogg")
-                .OutputToPipe(new StreamPipeSink(outStream), options => options
-                .WithVideoCodec("libvpx-vp9")
-                .ForceFormat("webm")
-                .WithSpeedPreset(Speed.UltraFast)
-                .WithDuration(mediaInfo.Duration)
-                .WithFramerate(8))
-                .ProcessSynchronously();
-        }
-        catch (System.Exception e)
-        {
-            Console.WriteLine(e);
-            File.Delete(tempPath);
-            throw;
-        }
-        File.Delete(tempPath);
-        outStream.Position = 0;
-        return outStream;
-    }
-
-    // public FileStream GenerateALLIMAGES(List<(string, string)> script)
-    // { //<(author, message)>
-    //     Console.WriteLine("beginning generation");
-    //     MemoryStream genStream = new MemoryStream();
-
-    //     Dictionary<string, (int, int)> authorCharacterDict = new(); //<author, (character, outfit)>
-    //     List<int> chosenCharacters = new();
-    //     foreach (var statementTuple in script)
-    //     {
-    //         if (authorCharacterDict.ContainsKey(statementTuple.Item1)) continue;
-
-    //         int charInt;
-    //         while (true)
-    //         {
-    //             charInt = random.Next(speakers.Count);
-    //             if (!chosenCharacters.Contains(charInt)) break;
-    //         }
-    //         int outfitInt = random.Next(speakers.Values.ToList()[charInt].Count);
-    //         authorCharacterDict.Add(statementTuple.Item1, (charInt, outfitInt));
-    //         chosenCharacters.Add(charInt);
-    //     }
-    //     int backgroundSelection = random.Next(backgrounds.Count);
-    //     Image background = backgrounds[backgroundSelection];
-
-    //     var gif = new Image<Rgba32>(background.Width, background.Height);
-
-    //     foreach (var statementTuple in script)
-    //     {
-    //         var spriteTuple = authorCharacterDict[statementTuple.Item1];
-    //         var partialGif = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
-    //         foreach (var frame in partialGif.Frames)
-    //         {
-    //             gif.Frames.AddFrame(frame);
-    //         }
-    //     }
-    //     gif.Frames.RemoveFrame(0);
-    //     Console.WriteLine("full statement frame count: "+ gif.Frames.Count);
-
-    //     Console.WriteLine("beginning conversion");
-    //     try
-    //     {
-    //         List<string> pathnames = new();
-    //         for (int i = 0; i < gif.Frames.Count; i++)
-    //         {
-    //             gif.Frames.CloneFrame(i).SaveAsPng($"out/img_{i}.png");
-    //             pathnames.Add($"out/img_{i}.png");
-    //         }
-    //         FFMpeg.JoinImageSequence("out.webm", 1, pathnames.ToArray());
-    //     }
-    //     catch (System.Exception e)
-    //     {
-    //         Console.WriteLine(e);
-    //         throw;
-    //     }
-    //     var outStream = new FileStream("out.webm", FileMode.Open);
-    //     outStream.Position = 0;
-    //     return outStream;
-    // }
-
-    public MemoryStream GenerateNoIntermediary(List<(string, string)> script)
-    { //<(author, message)>
+    public MemoryStream GenerateNoIntermediary(List<(string, string)> script) //<(author, message)>
+    { 
         Console.WriteLine("beginning generation");
         MemoryStream genStream = new MemoryStream();
 
@@ -261,8 +120,8 @@ public class SceneGenerator
         return outStream;
     }
 
-    public FileStream GenerateMP4NoIntermediary(List<(string, string)> script)
-    { //<(author, message)>
+    public FileStream GenerateMP4NoIntermediary(List<(string, string)> script) //<(author, message)>
+    { 
         Console.WriteLine("beginning generation");
         MemoryStream genStream = new MemoryStream();
 
