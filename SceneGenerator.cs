@@ -261,6 +261,75 @@ public class SceneGenerator
         return outStream;
     }
 
+    public FileStream GenerateMP4NoIntermediary(List<(string, string)> script)
+    { //<(author, message)>
+        Console.WriteLine("beginning generation");
+        MemoryStream genStream = new MemoryStream();
+
+        Dictionary<string, (int, int)> authorCharacterDict = new(); //<author, (character, outfit)>
+        List<int> chosenCharacters = new();
+        foreach (var statementTuple in script)
+        {
+            if (authorCharacterDict.ContainsKey(statementTuple.Item1)) continue;
+
+            int charInt;
+            while (true)
+            {
+                charInt = random.Next(speakers.Count);
+                if (!chosenCharacters.Contains(charInt)) break;
+            }
+            int outfitInt = random.Next(speakers.Values.ToList()[charInt].Count);
+            authorCharacterDict.Add(statementTuple.Item1, (charInt, outfitInt));
+            chosenCharacters.Add(charInt);
+        }
+        int backgroundSelection = random.Next(backgrounds.Count);
+        Image background = backgrounds[backgroundSelection];
+
+        var gif = new Image<Rgba32>(background.Width, background.Height);
+        List<int> keyFrames = new();
+        foreach (var statementTuple in script)
+        {
+            var spriteTuple = authorCharacterDict[statementTuple.Item1];
+            var partialGif = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
+            foreach (var frame in partialGif.Frames)
+            {
+                gif.Frames.AddFrame(frame);
+            }
+            keyFrames.Add(gif.Frames.Count-2);
+        }
+        gif.Frames.RemoveFrame(0);
+
+        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(gif, keyFrames))
+        {
+            FrameRate = 30
+        };
+
+        Console.WriteLine("beginning conversion");
+        string tempPath = $"temp_{random.Next(100000, 999999)}.mp4";
+        try
+        {
+            FFMpegArguments
+                .FromPipeInput(videoFrameSource)
+                .AddFileInput($"Resources{Path.DirectorySeparatorChar}Music{Path.DirectorySeparatorChar}flameOfLoveBeginning.ogg")
+                .OutputToFile(tempPath, true, options => options
+                .ForceFormat("mp4")
+                .WithSpeedPreset(Speed.UltraFast)
+                .WithCustomArgument("-vf mpdecimate")
+                .UsingShortest()
+                .WithFastStart()
+                )
+                .ProcessSynchronously();
+        }
+        catch (System.Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        var outStream = new FileStream(tempPath, FileMode.Open);
+        outStream.Position = 0;
+        return outStream;
+    }
+
     private IEnumerable<ImageSharpFrameWrapper<Rgba32>> CreateRawFrames(Image<Rgba32> gif, List<int> keyFrames)
     {
         int delay = 0;

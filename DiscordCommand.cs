@@ -118,40 +118,42 @@ public class DiscordCommand : BaseCommandModule
         sceneStream.Close();
     }
 
-    //     [Command("killrat")]
-    // public async Task SoupGeneratorAAAAAA(CommandContext ctx, int farBack)
-    // {
-    //     var timer = new Stopwatch();
-    //     var typing = ctx.TriggerTypingAsync();
-    //     timer.Start();
+    [Command("soupmp4")]
+    public async Task SoupGeneratorMP4(CommandContext ctx, int farBack)
+    {
+        var timer = new Stopwatch();
+        var typing = ctx.TriggerTypingAsync();
+        timer.Start();
 
-    //     if (farBack < 1)
-    //     {
-    //         await ctx.RespondAsync("did you know akarsha hates you");
-    //         return;
-    //     }
-    //     var generatingMessage = ctx.RespondAsync("Generating your video...");
-    //     var messages = ctx.Channel.GetMessagesBeforeAsync(ctx.Message.Id, farBack);
-    //     List<(string, string)> script = new();
-    //     foreach (var message in await messages)
-    //     {
+        if (farBack < 1)
+        {
+            await ctx.RespondAsync("did you know akarsha hates you");
+            return;
+        }
+        var generatingMessage = ctx.RespondAsync("Generating your video...");
+        var messages = ctx.Channel.GetMessagesBeforeAsync(ctx.Message.Id, farBack);
+        List<(string, string)> script = new();
+        foreach (var message in await messages)
+        {
 
-    //         script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content)));
-    //     }
-    //     script.Reverse();
-    //     var sceneStream = generator.GenerateALLIMAGES(script);
-    //     timer.Stop();
-    //     DiscordMessageBuilder reply = new DiscordMessageBuilder()
-    //         .WithContent($"Generated in {timer.ElapsedMilliseconds}ms");
-    //     reply.AddFile("bsoupmessage.webm", sceneStream);
-    //     await typing;
-    //     sceneStream.Position = 0;
-    //     Console.WriteLine("beginning send");
-    //     var replySend = ctx.RespondAsync(reply);
-    //     var generatedMessage = await generatingMessage;
-    //     await replySend;
-    //     await generatedMessage.DeleteAsync();
-    //     Console.WriteLine("sent");
-    //     sceneStream.Close();
-    // }
+            script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content)));
+        }
+        script.Reverse();
+        var sceneStream = generator.GenerateMP4NoIntermediary(script);
+        timer.Stop();
+        DiscordMessageBuilder reply = new DiscordMessageBuilder()
+            .WithContent($"Generated in {timer.ElapsedMilliseconds}ms");
+        reply.AddFile("bsoupmessage.mp4", sceneStream);
+        await typing;
+        sceneStream.Position = 0;
+        Console.WriteLine("beginning send");
+        var replySend = ctx.RespondAsync(reply);
+        var generatedMessage = await generatingMessage;
+        await replySend;
+        await generatedMessage.DeleteAsync();
+        Console.WriteLine("sent");
+        File.Delete(sceneStream.Name);
+        sceneStream.Close();
+    }
+
 }
