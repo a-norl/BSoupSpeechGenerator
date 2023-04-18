@@ -51,7 +51,7 @@ public class DiscordCommand : BaseCommandModule
         var typing = ctx.TriggerTypingAsync();
         timer.Start();
 
-        if (farBack < 1)
+        if (farBack < 1 || farBack > 25)
         {
             await ctx.RespondAsync("did you know akarsha hates you");
             return;
@@ -88,7 +88,7 @@ public class DiscordCommand : BaseCommandModule
         var typing = ctx.TriggerTypingAsync();
         timer.Start();
 
-        if (farBack < 1)
+        if (farBack < 1 || farBack > 25)
         {
             await ctx.RespondAsync("did you know akarsha hates you");
             return;
