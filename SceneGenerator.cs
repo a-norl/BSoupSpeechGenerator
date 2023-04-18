@@ -75,21 +75,21 @@ public class SceneGenerator
         int backgroundSelection = random.Next(backgrounds.Count);
         Image background = backgrounds[backgroundSelection];
 
-        var gif = new Image<Rgba32>(background.Width, background.Height);
+        var animation = new Image<Rgba32>(background.Width, background.Height);
         List<int> keyFrames = new();
         foreach (var statementTuple in script)
         {
             var spriteTuple = authorCharacterDict[statementTuple.Item1];
-            var partialGif = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
-            foreach (var frame in partialGif.Frames)
+            var partialAnimation = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
+            foreach (var frame in partialAnimation.Frames)
             {
-                gif.Frames.AddFrame(frame);
+                animation.Frames.AddFrame(frame);
             }
-            keyFrames.Add(gif.Frames.Count-2);
+            keyFrames.Add(animation.Frames.Count-2);
         }
-        gif.Frames.RemoveFrame(0);
+        animation.Frames.RemoveFrame(0);
 
-        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(gif, keyFrames))
+        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(animation, keyFrames))
         {
             FrameRate = 30
         };
@@ -144,21 +144,21 @@ public class SceneGenerator
         int backgroundSelection = random.Next(backgrounds.Count);
         Image background = backgrounds[backgroundSelection];
 
-        var gif = new Image<Rgba32>(background.Width, background.Height);
+        var animation = new Image<Rgba32>(background.Width, background.Height);
         List<int> keyFrames = new();
         foreach (var statementTuple in script)
         {
             var spriteTuple = authorCharacterDict[statementTuple.Item1];
-            var partialGif = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
-            foreach (var frame in partialGif.Frames)
+            var partialAnimation = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
+            foreach (var frame in partialAnimation.Frames)
             {
-                gif.Frames.AddFrame(frame);
+                animation.Frames.AddFrame(frame);
             }
-            keyFrames.Add(gif.Frames.Count-2);
+            keyFrames.Add(animation.Frames.Count-2);
         }
-        gif.Frames.RemoveFrame(0);
+        animation.Frames.RemoveFrame(0);
 
-        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(gif, keyFrames))
+        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(animation, keyFrames))
         {
             FrameRate = 30
         };
@@ -189,12 +189,12 @@ public class SceneGenerator
         return outStream;
     }
 
-    private IEnumerable<ImageSharpFrameWrapper<Rgba32>> CreateRawFrames(Image<Rgba32> gif, List<int> keyFrames)
+    private IEnumerable<ImageSharpFrameWrapper<Rgba32>> CreateRawFrames(Image<Rgba32> animation, List<int> keyFrames)
     {
         int delay = 0;
-        for (int i = 0; i < gif.Frames.Count; i++)
+        for (int i = 0; i < animation.Frames.Count; i++)
         {
-            yield return new ImageSharpFrameWrapper<Rgba32>(gif.Frames.CloneFrame(i));
+            yield return new ImageSharpFrameWrapper<Rgba32>(animation.Frames.CloneFrame(i));
             if(keyFrames.Contains(i) && delay < 60) {
                 i--;
                 delay++;
@@ -212,16 +212,16 @@ public class SceneGenerator
         Image<Rgba32> canvas = new(background.Width, background.Height);
         canvas.Mutate(c => c.DrawImage(background, 1f).DrawImage(sprite, new Point(background.Width / 2 - sprite.Width / 2, background.Height - sprite.Height), 1f));
 
-        var gif = new Image<Rgba32>(background.Width, background.Height);
+        var statementAnimation = new Image<Rgba32>(background.Width, background.Height);
 
         var speechList = speechBubbleGenerator.GenerateAnimatedList(author, message);
         foreach (var speechFrame in speechList)
         {
             var frame = canvas.Clone(c => c.DrawImage(speechFrame, new Point(0, canvas.Height - speechFrame.Height), 1f));
-            gif.Frames.AddFrame(frame.Frames.RootFrame);
+            statementAnimation.Frames.AddFrame(frame.Frames.RootFrame);
         }
-        gif.Frames.RemoveFrame(0);
-        return gif;
+        statementAnimation.Frames.RemoveFrame(0);
+        return statementAnimation;
     }
 
 }
