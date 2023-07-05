@@ -10,6 +10,7 @@ public class DiscordCommand : BaseCommandModule
 {
 
     SceneGenerator generator = new();
+    HttpClient httpClient = new();
 
     private async Task<string> fixMessageContent(CommandContext ctx, string message)
     {
@@ -58,11 +59,20 @@ public class DiscordCommand : BaseCommandModule
         }
         var generatingMessage = ctx.RespondAsync("Generating your video...");
         var messages = ctx.Channel.GetMessagesBeforeAsync(ctx.Message.Id, farBack);
-        List<(string, string)> script = new();
+        List<(string, string, Image?)> script = new();
         foreach (var message in await messages)
         {
-
-            script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content)));
+            if(message.Attachments.Count > 0)
+            {
+                if(message.Attachments[0].MediaType.Contains("image/"))
+                {
+                    var downloadedAttachment = await httpClient.GetByteArrayAsync(message.Attachments[0].Url);
+                    var downloadedImage = Image.Load(downloadedAttachment);
+                    script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content), downloadedImage));
+                    continue;
+                }
+            }
+            script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content), null));
         }
         script.Reverse();
         var sceneStream = generator.GenerateMP4NoIntermediary(script);

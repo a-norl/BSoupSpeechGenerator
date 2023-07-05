@@ -55,10 +55,11 @@ class SpeechBubbleGenerator
     public List<Image<Rgba32>> GenerateAnimatedList(string author, string message)
     {
         List<Image<Rgba32>> returnList = new();
-        string buildingMessage = "";
+        string buildingMessage = " ";
         var messageInfo = new StringInfo(message);
         Image<Rgba32> canvas = speechBubbleBase.Clone();
         canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
+        returnList.Add(canvas.Clone());
 
         for (int i = 0; i < messageInfo.LengthInTextElements; i++)
         {
@@ -92,7 +93,7 @@ class SpeechBubbleGenerator
                 }
                 canvas = speechBubbleBase.Clone();
                 canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
-                buildingMessage = "";
+                buildingMessage = " ";
             }
 
             buildingMessage += messageInfo.SubstringByTextElements(i, 1);
