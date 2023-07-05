@@ -44,44 +44,7 @@ public class DiscordCommand : BaseCommandModule
 
     }
 
-    [Command("soupnogif"), Aliases("soup")]
-    public async Task SoupGeneratorNoIntermediary(CommandContext ctx, int farBack)
-    {
-        var timer = new Stopwatch();
-        var typing = ctx.TriggerTypingAsync();
-        timer.Start();
-
-        if (farBack < 1 || farBack > 25)
-        {
-            await ctx.RespondAsync("did you know akarsha hates you");
-            return;
-        }
-        var generatingMessage = ctx.RespondAsync("Generating your video...");
-        var messages = ctx.Channel.GetMessagesBeforeAsync(ctx.Message.Id, farBack);
-        List<(string, string)> script = new();
-        foreach (var message in await messages)
-        {
-
-            script.Add((((await ctx.Guild.GetMemberAsync(message.Author.Id)).DisplayName), await fixMessageContent(ctx, message.Content)));
-        }
-        script.Reverse();
-        var sceneStream = generator.GenerateNoIntermediary(script);
-        timer.Stop();
-        DiscordMessageBuilder reply = new DiscordMessageBuilder()
-            .WithContent($"Generated in {timer.ElapsedMilliseconds}ms");
-        reply.AddFile("bsoupmessage.webm", sceneStream);
-        await typing;
-        sceneStream.Position = 0;
-        Console.WriteLine("beginning send");
-        var replySend = ctx.RespondAsync(reply);
-        var generatedMessage = await generatingMessage;
-        await replySend;
-        await generatedMessage.DeleteAsync();
-        Console.WriteLine("sent");
-        sceneStream.Close();
-    }
-
-    [Command("soupmp4")]
+    [Command("soup"), Aliases("soupmp4")]
     public async Task SoupGeneratorMP4(CommandContext ctx, int farBack)
     {
         var timer = new Stopwatch();
