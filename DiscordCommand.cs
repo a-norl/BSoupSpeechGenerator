@@ -44,7 +44,7 @@ public class DiscordCommand : BaseCommandModule
 
     }
 
-    [Command("soup"), Aliases("soupmp4")]
+    [Command("soup"), Cooldown(1, 10, CooldownBucketType.Channel)]
     public async Task SoupGeneratorMP4(CommandContext ctx, int farBack)
     {
         var timer = new Stopwatch();
