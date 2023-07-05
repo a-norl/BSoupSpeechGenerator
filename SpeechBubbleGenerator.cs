@@ -13,6 +13,7 @@ class SpeechBubbleGenerator
     private Font dialogueFont;
     private TextOptions dialogueFontOptions;
     private Image<Rgba32> speechBubbleBase;
+    private readonly int dialogueWrapLength = 1150;
 
     public SpeechBubbleGenerator()
     {
@@ -29,9 +30,9 @@ class SpeechBubbleGenerator
         dialogueFontOptions = new(dialogueFont)
         {
             Origin = new Point(90, 90),
-            WrappingLength = 1150,
+            // WrappingLength = dialogueWrapLength,
             FallbackFontFamilies = new[] { emojiFamily },
-            ColorFontSupport = ColorFontSupport.MicrosoftColrFormat
+            ColorFontSupport = ColorFontSupport.MicrosoftColrFormat,
         };
 
         nameFont = nameFamily.CreateFont(45f);
@@ -42,7 +43,6 @@ class SpeechBubbleGenerator
             FallbackFontFamilies = new[] { emojiFamily },
             ColorFontSupport = ColorFontSupport.MicrosoftColrFormat
         };
-
 
 
         Image textBox = Image.Load($"Resources{Path.DirectorySeparatorChar}textbox.png");
@@ -62,16 +62,52 @@ class SpeechBubbleGenerator
         return canvas;
     }
 
-    public List<Image<Rgba32>> GenerateAnimatedList(string author, string message) {
+    public List<Image<Rgba32>> GenerateAnimatedList(string author, string message)
+    {
         List<Image<Rgba32>> returnList = new();
-        String buildingMessage = "";
+        string buildingMessage = "";
         var messageInfo = new StringInfo(message);
         Image<Rgba32> canvas = speechBubbleBase.Clone();
         canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
 
         for (int i = 0; i < messageInfo.LengthInTextElements; i++)
         {
+
+            if (i > 0 && messageInfo.SubstringByTextElements(i - 1, 1) == " " && messageInfo.SubstringByTextElements(i, 1) != " ")
+            {
+                string word = "";
+                for (int j = 0; (i + j < messageInfo.LengthInTextElements) && (messageInfo.SubstringByTextElements(i + j, 1) != " "); j++)
+                {
+                    word += messageInfo.SubstringByTextElements(i + j, 1);
+                    if (TextMeasurer.Measure(buildingMessage + word, dialogueFontOptions).Width >= dialogueWrapLength)
+                    {
+                        buildingMessage += '\n';
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (TextMeasurer.Measure(buildingMessage + messageInfo.SubstringByTextElements(i, 1), dialogueFontOptions).Width > dialogueWrapLength)
+                {
+                    buildingMessage += '\n';
+                }
+            }
+
+            if (i < messageInfo.LengthInTextElements - 2 && TextMeasurer.CountLines(buildingMessage + messageInfo.SubstringByTextElements(i, 2), dialogueFontOptions) == 5)
+            {
+                for (int j = 0; j < 30; j++)
+                {
+                    returnList.Add(returnList.Last().Clone());
+                }
+                canvas = speechBubbleBase.Clone();
+                canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
+                buildingMessage = "";
+            }
+
             buildingMessage += messageInfo.SubstringByTextElements(i, 1);
+            canvas = speechBubbleBase.Clone();
+            canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
             canvas.Mutate(c => c.DrawText(dialogueFontOptions, buildingMessage, Color.White));
             returnList.Add(canvas.Clone());
         }
