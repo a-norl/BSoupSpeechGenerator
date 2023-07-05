@@ -51,15 +51,6 @@ class SpeechBubbleGenerator
         speechBubbleBase.Mutate(c => c.DrawImage(textBox, new Point(0, 30), .75f));
         speechBubbleBase.Mutate(c => c.DrawImage(nameBox, new Point(0, 0), 1f));
     }
-    public Image<Rgba32> GenerateBubbleImage(string author, string message)
-    {
-        Image<Rgba32> canvas = speechBubbleBase.Clone();
-
-        canvas.Mutate(c => c.DrawText(dialogueFontOptions, message, Color.White));
-        canvas.Mutate(c => c.DrawText(nameFontOptions, author, Color.White));
-
-        return canvas;
-    }
 
     public List<Image<Rgba32>> GenerateAnimatedList(string author, string message)
     {

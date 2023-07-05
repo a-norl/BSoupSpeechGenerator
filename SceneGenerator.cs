@@ -49,44 +49,6 @@ public class SceneGenerator
         Console.WriteLine("Scene Generator Loaded");
     }
 
-
-    public MemoryStream GenerateNoIntermediary(List<(string, string)> script) //<(author, message)>
-    { 
-        var result = generateFrames(script);
-        var animation = result.Item1;
-        var keyFrames = result.Item2;
-
-        var videoFrameSource = new RawVideoPipeSource(CreateRawFrames(animation, keyFrames))
-        {
-            FrameRate = 30
-        };
-
-        Console.WriteLine("beginning conversion");
-        MemoryStream outStream = new MemoryStream();
-        try
-        {
-            FFMpegArguments
-                .FromPipeInput(videoFrameSource)
-                .AddFileInput(Path.Join(AppContext.BaseDirectory, "Resources", "Music", "flameOfLoveLoop.ogg"))
-                .OutputToPipe(new StreamPipeSink(outStream), options => options
-                .WithVideoCodec("libvpx-vp9")
-                .ForceFormat("webm")
-                .WithSpeedPreset(Speed.UltraFast)
-                .WithCustomArgument("-vf mpdecimate")
-                .UsingThreads(4)
-                .UsingShortest()
-                )
-                .ProcessSynchronously();
-        }
-        catch (System.Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-        outStream.Position = 0;
-        return outStream;
-    }
-
     public FileStream GenerateMP4NoIntermediary(List<(string, string)> script) //<(author, message)>
     { 
         
