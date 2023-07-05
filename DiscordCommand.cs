@@ -68,7 +68,7 @@ public class DiscordCommand : BaseCommandModule
         var sceneStream = generator.GenerateMP4NoIntermediary(script);
         timer.Stop();
         DiscordMessageBuilder reply = new DiscordMessageBuilder()
-            .WithContent($"Generated in {timer.ElapsedMilliseconds}ms");
+            .WithContent($"Generated in {timer.ElapsedMilliseconds/1000f} seconds.");
         reply.AddFile("bsoupmessage.mp4", sceneStream);
         await typing;
         sceneStream.Position = 0;
