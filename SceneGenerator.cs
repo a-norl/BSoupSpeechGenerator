@@ -49,7 +49,7 @@ public class SceneGenerator
         Console.WriteLine("Scene Generator Loaded");
     }
 
-    public FileStream GenerateMP4NoIntermediary(List<(string, string)> script) //<(author, message)>
+    public FileStream GenerateMP4NoIntermediary(List<(string, string, Image?)> script) //<(author, message)>
     { 
         
         var result = generateFrames(script);
@@ -87,7 +87,7 @@ public class SceneGenerator
         return outStream;
     }
 
-    private (Image<Rgba32>, List<int>) generateFrames(List<(string, string)> script) {
+    private (Image<Rgba32>, List<int>) generateFrames(List<(string, string, Image?)> script) {
         Console.WriteLine("beginning generation");
         Dictionary<string, (int, int)> authorCharacterDict = new(); //<author, (character, outfit)>
         List<int> chosenCharacters = new();
@@ -113,7 +113,7 @@ public class SceneGenerator
         foreach (var statementTuple in script)
         {
             var spriteTuple = authorCharacterDict[statementTuple.Item1];
-            var partialAnimation = generateStatement(statementTuple.Item1, statementTuple.Item2, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
+            var partialAnimation = generateStatement(statementTuple.Item1, statementTuple.Item2, statementTuple.Item3, backgroundSelection, spriteTuple.Item1, spriteTuple.Item2, random.Next(speakers.Values.ToList()[spriteTuple.Item1][spriteTuple.Item2].Count));
             foreach (var frame in partialAnimation.Frames)
             {
                 animation.Frames.AddFrame(frame);
@@ -140,14 +140,21 @@ public class SceneGenerator
         }
     }
 
-    private Image<Rgba32> generateStatement(string author, string message, int backgroundSelection, int characterSelection, int outfitSelection, int moodSelection)
+    private Image<Rgba32> generateStatement(string author, string message, Image? attachment, int backgroundSelection, int characterSelection, int outfitSelection, int moodSelection)
     {
         Image background = backgrounds[backgroundSelection];
         Image sprite = speakers.Values.ToList()[characterSelection][outfitSelection][moodSelection];
 
         Image<Rgba32> canvas = new(background.Width, background.Height);
         canvas.Mutate(c => c.DrawImage(background, 1f).DrawImage(sprite, new Point(background.Width / 2 - sprite.Width / 2, background.Height - sprite.Height), 1f));
-
+        if(attachment is not null)
+        {//390x515
+            if(attachment.Width > 390 || attachment.Height > 515)
+            {
+                attachment.Mutate(a => a.Resize(390, 515));
+            }
+            canvas.Mutate(c => c.DrawImage(attachment, new Point(25, 25), 1f));
+        }
         var statementAnimation = new Image<Rgba32>(background.Width, background.Height);
 
         var speechList = speechBubbleGenerator.GenerateAnimatedList(author, message);
