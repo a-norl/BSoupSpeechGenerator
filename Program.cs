@@ -8,14 +8,15 @@ class Program
     {
         var discord = new DiscordClient(new DiscordConfiguration()
         {
-            Token = Environment.GetEnvironmentVariable("TEST_DISCORD_BOT_ID"),
+            Token = Environment.GetEnvironmentVariable("BUTTERFLY_SOUP_TOKEN"),
             TokenType = TokenType.Bot,
-            Intents = DiscordIntents.All
+            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
         });
 
         var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
         {
-            StringPrefixes = new[] { ">" }
+            StringPrefixes = new[] { "!" },
+            EnableDefaultHelp = false
         });
 
         commands.RegisterCommands<DiscordCommand>();
