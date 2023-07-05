@@ -1,8 +1,6 @@
 using FFMpegCore;
 using FFMpegCore.Enums;
 using FFMpegCore.Pipes;
-using SixLabors.ImageSharp.Formats.Gif;
-using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace BSoupSpeechGenerator;
 
