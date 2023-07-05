@@ -18,9 +18,9 @@ class SpeechBubbleGenerator
     public SpeechBubbleGenerator()
     {
         collection = new();
-        collection.Add($"Resources{Path.DirectorySeparatorChar}YunusH.ttf"); //"YunusH"
-        collection.Add($"Resources{Path.DirectorySeparatorChar}myriad.ttf"); // "Myriad Pro"
-        collection.Add($"Resources{Path.DirectorySeparatorChar}Twemoji.Mozilla.ttf"); //"Twemoji Mozilla"
+        collection.Add(Path.Join(AppContext.BaseDirectory, "Resources", "YunusH.ttf")); //"YunusH"
+        collection.Add(Path.Join(AppContext.BaseDirectory, "Resources", "myriad.ttf")); // "Myriad Pro"
+        collection.Add(Path.Join(AppContext.BaseDirectory, "Resources", "Twemoji.Mozilla.ttf")); //"Twemoji Mozilla"
 
         var dialogueFamily = collection.Get("Myriad Pro");
         var nameFamily = collection.Get("YunusH");
@@ -44,9 +44,8 @@ class SpeechBubbleGenerator
             ColorFontSupport = ColorFontSupport.MicrosoftColrFormat
         };
 
-
-        Image textBox = Image.Load($"Resources{Path.DirectorySeparatorChar}textbox.png");
-        Image nameBox = Image.Load($"Resources{Path.DirectorySeparatorChar}namebox2.png");
+        Image textBox = Image.Load(Path.Join(AppContext.BaseDirectory, "Resources","textbox.png"));
+        Image nameBox = Image.Load(Path.Join(AppContext.BaseDirectory, "Resources","namebox2.png"));
         speechBubbleBase = new Image<Rgba32>(textBox.Width, 267);
 
         speechBubbleBase.Mutate(c => c.DrawImage(textBox, new Point(0, 30), .75f));
