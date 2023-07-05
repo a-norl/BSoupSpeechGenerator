@@ -18,7 +18,7 @@ public class SceneGenerator
         random = new();
 
         backgrounds = new List<Image>();
-        
+
         var backgroundpaths = Directory.GetFiles(Path.Join(AppContext.BaseDirectory, "Resources", "Backgrounds"));
         foreach (var background in backgroundpaths)
         {
@@ -50,8 +50,8 @@ public class SceneGenerator
     }
 
     public FileStream GenerateMP4NoIntermediary(List<(string, string, Image?)> script) //<(author, message)>
-    { 
-        
+    {
+
         var result = generateFrames(script);
         var animation = result.Item1;
         var keyFrames = result.Item2;
@@ -87,7 +87,8 @@ public class SceneGenerator
         return outStream;
     }
 
-    private (Image<Rgba32>, List<int>) generateFrames(List<(string, string, Image?)> script) {
+    private (Image<Rgba32>, List<int>) generateFrames(List<(string, string, Image?)> script)
+    {
         Console.WriteLine("beginning generation");
         Dictionary<string, (int, int)> authorCharacterDict = new(); //<author, (character, outfit)>
         List<int> chosenCharacters = new();
@@ -118,7 +119,7 @@ public class SceneGenerator
             {
                 animation.Frames.AddFrame(frame);
             }
-            keyFrames.Add(animation.Frames.Count-2);
+            keyFrames.Add(animation.Frames.Count - 2);
         }
         animation.Frames.RemoveFrame(0);
 
@@ -131,10 +132,13 @@ public class SceneGenerator
         for (int i = 0; i < animation.Frames.Count; i++)
         {
             yield return new ImageSharpFrameWrapper<Rgba32>(animation.Frames.CloneFrame(i));
-            if(keyFrames.Contains(i) && delay < 60) {
+            if (keyFrames.Contains(i) && delay < 60)
+            {
                 i--;
                 delay++;
-            } else {
+            }
+            else
+            {
                 delay = 0;
             }
         }
@@ -147,23 +151,89 @@ public class SceneGenerator
 
         Image<Rgba32> canvas = new(background.Width, background.Height);
         canvas.Mutate(c => c.DrawImage(background, 1f).DrawImage(sprite, new Point(background.Width / 2 - sprite.Width / 2, background.Height - sprite.Height), 1f));
-        if(attachment is not null)
+
+        bool gifAttach = false;
+        if (attachment is not null)
         {//390x515
-            if(attachment.Width > 390 || attachment.Height > 515)
+            if (attachment.Width > 390)
             {
-                attachment.Mutate(a => a.Resize(390, 515));
+                attachment.Mutate(a => a.Resize(390, 0));
             }
-            canvas.Mutate(c => c.DrawImage(attachment, new Point(25, 25), 1f));
+            if (attachment.Height > 515)
+            {
+                attachment.Mutate(a => a.Resize(0, 515));
+            }
+            if (attachment.Frames.Count > 1)
+            {
+                gifAttach = true;
+            }
         }
         var statementAnimation = new Image<Rgba32>(background.Width, background.Height);
 
         var speechList = speechBubbleGenerator.GenerateAnimatedList(author, message);
-        foreach (var speechFrame in speechList)
+
+        List<Image> gifFrames = new();
+        if (gifAttach && attachment is not null)
         {
-            var frame = canvas.Clone(c => c.DrawImage(speechFrame, new Point(0, canvas.Height - speechFrame.Height), 1f));
-            statementAnimation.Frames.AddFrame(frame.Frames.RootFrame);
+            int frameCountInitial = attachment.Frames.Count;
+            for (int i = 0; i < frameCountInitial - 1; i++)
+            {
+                gifFrames.Add(attachment.Frames.ExportFrame(0));
+            }
+            gifFrames.Add(attachment);
         }
+        if (speechList.Count == 1)
+        {
+            if (gifAttach)
+            {
+                int frameCount = gifFrames.Count;
+                if(frameCount < 30)
+                {
+                    frameCount = 30;
+                }
+                for (int i = 0; i < frameCount; i++)
+                {
+                    if (gifAttach && attachment is not null)
+                    {
+                        canvas.Mutate(c => c.DrawImage(gifFrames[i % gifFrames.Count], new Point(513, canvas.Height - attachment.Height), 1f));
+                    }
+                    statementAnimation.Frames.AddFrame(canvas.Frames.RootFrame);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 30; i++)
+                {
+                    if (gifAttach && attachment is not null)
+                    {
+                        canvas.Mutate(c => c.DrawImage(attachment, new Point(513, canvas.Height - attachment.Height), 1f));
+                    }
+                    statementAnimation.Frames.AddFrame(canvas.Frames.RootFrame);
+                }
+            }
+        }
+        else
+        {
+            int frameCount = 0;
+            foreach (var speechFrame in speechList)
+            {
+                if (gifAttach && attachment is not null)
+                {
+                    canvas.Mutate(c => c.DrawImage(gifFrames[frameCount % gifFrames.Count], new Point(25, 25), 1f));
+                }
+                else if(attachment is not null)
+                {
+                    canvas.Mutate(c => c.DrawImage(attachment, new Point(25, 25), 1f));
+                }
+                var frame = canvas.Clone(c => c.DrawImage(speechFrame, new Point(0, canvas.Height - speechFrame.Height), 1f));
+                statementAnimation.Frames.AddFrame(frame.Frames.RootFrame);
+                frameCount++;
+            }
+        }
+
+
         statementAnimation.Frames.RemoveFrame(0);
+
         return statementAnimation;
     }
 
