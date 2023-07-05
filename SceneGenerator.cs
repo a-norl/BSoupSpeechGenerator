@@ -18,14 +18,15 @@ public class SceneGenerator
         random = new();
 
         backgrounds = new List<Image>();
-        var backgroundpaths = Directory.GetFiles($"Resources{Path.DirectorySeparatorChar}Backgrounds");
+        
+        var backgroundpaths = Directory.GetFiles(Path.Join(AppContext.BaseDirectory, "Resources", "Backgrounds"));
         foreach (var background in backgroundpaths)
         {
             backgrounds.Add(Image.Load(background));
         }
 
         speakers = new Dictionary<string, List<List<Image>>>();
-        var speakersDir = Directory.EnumerateDirectories($"Resources{Path.DirectorySeparatorChar}Speakers");
+        var speakersDir = Directory.EnumerateDirectories(Path.Join(AppContext.BaseDirectory, "Resources", "Speakers"));
         foreach (var dir in speakersDir)
         {
             string name = Path.GetFileName(dir);
@@ -66,7 +67,7 @@ public class SceneGenerator
         {
             FFMpegArguments
                 .FromPipeInput(videoFrameSource)
-                .AddFileInput($"Resources{Path.DirectorySeparatorChar}Music{Path.DirectorySeparatorChar}flameOfLoveLoop.ogg")
+                .AddFileInput(Path.Join(AppContext.BaseDirectory, "Resources", "Music", "flameOfLoveLoop.ogg"))
                 .OutputToPipe(new StreamPipeSink(outStream), options => options
                 .WithVideoCodec("libvpx-vp9")
                 .ForceFormat("webm")
@@ -99,12 +100,12 @@ public class SceneGenerator
         };
 
         Console.WriteLine("beginning conversion");
-        string tempPath = $"temp_{random.Next(100000, 999999)}.mp4";
+        string tempPath = $"temp_{DateTime.Now.ToFileTime()}.mp4";
         try
         {
             FFMpegArguments
                 .FromPipeInput(videoFrameSource)
-                .AddFileInput($"Resources{Path.DirectorySeparatorChar}Music{Path.DirectorySeparatorChar}flameOfLoveBeginning.ogg")
+                .AddFileInput(Path.Join(AppContext.BaseDirectory, "Resources", "Music", "flameOfLoveLoop.ogg"))
                 .OutputToFile(tempPath, true, options => options
                 .ForceFormat("mp4")
                 .WithSpeedPreset(Speed.UltraFast)
